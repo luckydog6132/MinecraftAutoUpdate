@@ -1,6 +1,7 @@
 #coding:utf-8
 import os;
 import os.path;
+import urllib;
 import requests;
 import hashlib;
 import ConfigParser;
@@ -58,12 +59,27 @@ if __name__ == "__main__":
 
     # Offline 模式
     if _update_mode == "Online":
+        # Online
         print "Online";
-        # download_file_save_to_path("http://127.0.0.1/forpython/[测试用jar包].jar","./[测试].jar");
+        _server_request = cfg.get('Online Update Info', 'server_request');
+        # 接口获取内容
+        update_json = [];
+        # 获取接口信息
+        response = requests.get(_server_request);
+        if response.status_code == 200:
+            update_json = json.loads(response.content);
+        else :
+            print "http error code:" + response.status_code;
+        
+        # 遍历更新信息，查看是否有对应本地文件
+        for info_dic in update_json["mods_list"]:
+            if is_exits_file(info_dic, _minecraft_mods_path) == False:
+                print "缺少文件:" + info_dic["file_name"].encode("utf-8")
     else:
         # Offline
         print "Offline";
         _update_file_path = cfg.get('Offline Update Info', 'update_file');
+
         # 文件中的字典内容
         update_json = [];
         with open(_update_file_path) as load_file:
@@ -72,7 +88,7 @@ if __name__ == "__main__":
             update_json = json.loads(update_dict);
 
         # 遍历更新信息，查看是否有对应本地文件
-        for info_dic in update_json:
+        for info_dic in update_json["mods_list"]:
             if is_exits_file(info_dic, _minecraft_mods_path) == False:
                 print "缺少文件:" + info_dic["file_name"].encode("utf-8")
     

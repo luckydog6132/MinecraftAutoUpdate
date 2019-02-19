@@ -42,7 +42,8 @@ if __name__ == "__main__":
     _save_file = cfg.get('Server Info', 'save_file');
 
     # 保存的内容
-    server_mod_info = [];
+    server_info_dic = {};
+    mod_list = [];
 
     # 遍历mods文件
     for parent,dirnames,filenames in os.walk(_server_mods_path):    
@@ -55,8 +56,13 @@ if __name__ == "__main__":
                     "file_name_md5" : get_string_md5(filename),
                     "file_md5" : get_file_md5(os.path.join(parent,filename))
                 }
-                server_mod_info.append(file_info_dict)
+                mod_list.append(file_info_dict)
 
+    # 整合json
+    server_info_dic = {
+        "mods_list" : mod_list,
+        "delete_mod" : [] 
+    };
     # 保存到文件
     with open(_save_file, 'w') as file:
-        file.write(json.dumps(server_mod_info, indent=2, ensure_ascii=False)) # 支持中文
+        file.write(json.dumps(server_info_dic, indent=2, ensure_ascii=False)) # 支持中文

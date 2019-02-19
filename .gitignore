@@ -3,3 +3,5 @@ HMCL.jar
 hmcl.json
 [测试].jar
 server.json
+.vscode
+.DS_Store
