@@ -52,7 +52,7 @@ if __name__ == "__main__":
             # jar文件才保存
             if ".jar" in filename:
                 file_info_dict = {
-                    "file_name" : filename,
+                    "file_name" : os.path.join(parent,filename).replace(_server_mods_path,""),
                     "file_name_md5" : get_string_md5(filename),
                     "file_md5" : get_file_md5(os.path.join(parent,filename))
                 }
