@@ -6,3 +6,4 @@ server.json
 .vscode
 .DS_Store
 build
+MinecraftAutoUpdate.spec
