@@ -1,4 +1,5 @@
 #coding:utf-8
+import sys;
 import os;
 import os.path;
 import urllib;
@@ -31,7 +32,7 @@ def download_file_save_to_path(urlString, savePath):
     with open(savePath, "wb") as save_data:
         save_data.write(the_request.content)
 # 查看本地是否有文件
-def is_exits_file(file_json, mods_path):
+def is_exist_file(file_json, mods_path):
     for parent,dirnames,filenames in os.walk(mods_path):    
         for filename in filenames:
             cur_file_md5 = get_file_md5(os.path.join(parent,filename))
@@ -40,7 +41,7 @@ def is_exits_file(file_json, mods_path):
                 return True;
     return False;
 # 删除本地文件
-def remove_exits_file(file_md5, mods_path):
+def remove_exist_file(file_md5, mods_path):
     for parent,dirnames,filenames in os.walk(mods_path):    
         for filename in filenames:
             cur_file_md5 = get_file_md5(os.path.join(parent,filename))
@@ -77,8 +78,15 @@ def get_update_json_info(cfg):
     return update_json;
 #----------------------------↑↑↑↑↑↑↑↑↑↑↑↑↑ 通用方法 ↑↑↑↑↑↑↑↑↑↑↑↑↑----------------------------
 if __name__ == "__main__":
+    # 切换到当前文件夹
+    sys_path,sys_file_name=os.path.split(sys.argv[0])
+    os.chdir(sys_path);
+
     # 配置文件
     _config_file_path = "./update.cfg"
+    if os.access(_config_file_path, os.F_OK) == False:
+        print "config file not found";
+        sys.exit()
     cfg = ConfigParser.ConfigParser()
     cfg.read(_config_file_path)
     # 读取配置
@@ -88,21 +96,24 @@ if __name__ == "__main__":
     
     # 文件是否存在
     if os.access(_minecraft_path, os.F_OK) and os.access(_minecraft_mods_path, os.F_OK):
-        print ".minecraft and mods exits";
+        print ".minecraft and mods exist";
     else:
-        print "config file error";
-        exit(0);
+        print "minecraft dir error";
+        sys.exit();
 
     # 根据在线模式或者离线模式获取内容后，进行更新
     update_json = get_update_json_info(cfg);
 
     # 遍历更新信息，查看是否有对应本地文件
     for info_dic in update_json["mods_list"]:
-        if is_exits_file(info_dic, _minecraft_mods_path) == False:
+        if is_exist_file(info_dic, _minecraft_mods_path) == False:
             print "缺少文件:" + info_dic["file_name"].encode("utf-8");
             download_file_save_to_path(_update_download_url+info_dic["file_name"].encode("utf-8"),_minecraft_mods_path+info_dic["file_name"].encode("utf-8"));
     # 删除指定文件
     for delete_md5 in update_json["delete_mod"]:
-        remove_exits_file(delete_md5,_minecraft_mods_path);
-            
+        remove_exist_file(delete_md5,_minecraft_mods_path);
+
+    # 结束
+    print "✅ ✅ ✅ ✅ 更新mods完成...";
+    sys.exit(0);
             
