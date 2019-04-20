@@ -1,12 +1,12 @@
 #coding:utf-8
-import sys;
-import os;
-import os.path;
-import urllib;
-import requests;
-import hashlib;
-import ConfigParser;
-import json;
+import sys
+import os
+import os.path
+import urllib
+import requests
+import hashlib
+import configparser
+import json
 #----------------------------↓↓↓↓↓↓↓↓↓↓↓↓↓ 通用方法 ↓↓↓↓↓↓↓↓↓↓↓↓↓----------------------------
 # 计算文件md5
 def get_file_md5(filename):
@@ -37,83 +37,83 @@ def is_exist_file(file_json, mods_path):
         for filename in filenames:
             cur_file_md5 = get_file_md5(os.path.join(parent,filename))
             if cur_file_md5 == file_json["file_md5"]:
-                # print "存在文件" + info_dic["file_name"].encode("utf-8");
-                return True;
-    return False;
+                # print("存在文件" + info_dic["file_name"].encode("utf-8"))
+                return True
+    return False
 # 删除本地文件
 def remove_exist_file(file_md5, mods_path):
     for parent,dirnames,filenames in os.walk(mods_path):    
         for filename in filenames:
             cur_file_md5 = get_file_md5(os.path.join(parent,filename))
             if cur_file_md5 == file_md5:
-                print "delete : "+file_md5;
-                os.remove(os.path.join(parent,filename));
+                print("delete : "+file_md5)
+                os.remove(os.path.join(parent,filename))
 # 获取更新信息
 def get_update_json_info(cfg):
-    _update_mode = cfg.get('Update Info', 'update_mode');
+    _update_mode = cfg.get('Update Info', 'update_mode')
     # Offline 模式
     # 接口获取内容或离线内容
-    update_json = [];
+    update_json = []
     if _update_mode == "Online":
         # Online
-        print "Online";
-        _server_request = cfg.get('Online Update Info', 'server_request');
+        print("Online")
+        _server_request = cfg.get('Online Update Info', 'server_request')
         
         # 获取接口信息
-        response = requests.get(_server_request);
+        response = requests.get(_server_request)
         if response.status_code == 200:
-            update_json = json.loads(response.content);
+            update_json = json.loads(response.content)
         else :
-            print "http error code:" + response.status_code;
+            print("http error code:" + response.status_code)
     else:
         # Offline
-        print "Offline";
-        _update_file_path = cfg.get('Offline Update Info', 'update_file');
+        print("Offline")
+        _update_file_path = cfg.get('Offline Update Info', 'update_file')
 
         # 文件中的字典内容
         with open(_update_file_path) as load_file:
             update_dict = load_file.read()
-            load_file.close;
-            update_json = json.loads(update_dict);
-    return update_json;
+            load_file.close
+            update_json = json.loads(update_dict)
+    return update_json
 #----------------------------↑↑↑↑↑↑↑↑↑↑↑↑↑ 通用方法 ↑↑↑↑↑↑↑↑↑↑↑↑↑----------------------------
 if __name__ == "__main__":
     # 切换到当前文件夹
     sys_path,sys_file_name=os.path.split(sys.argv[0])
-    os.chdir(sys_path);
+    os.chdir(sys_path)
 
     # 配置文件
     _config_file_path = "./update.cfg"
     if os.access(_config_file_path, os.F_OK) == False:
-        print "config file not found";
-        sys.exit()
-    cfg = ConfigParser.ConfigParser()
-    cfg.read(_config_file_path)
+        print("config file not found")
+        sys.exit(0)
+    cfg = configparser.ConfigParser()
+    cfg.read(_config_file_path, encoding="utf-8")
     # 读取配置
-    _minecraft_path = cfg.get('File Path', 'minecraft');
-    _minecraft_mods_path = cfg.get('File Path', 'minecraft_mods');
-    _update_download_url = cfg.get('Update Info', 'update_download_url');
+    _minecraft_path = cfg.get('File Path', 'minecraft')
+    _minecraft_mods_path = cfg.get('File Path', 'minecraft_mods')
+    _update_download_url = cfg.get('Update Info', 'update_download_url')
     
     # 文件是否存在
     if os.access(_minecraft_path, os.F_OK) and os.access(_minecraft_mods_path, os.F_OK):
-        print ".minecraft and mods exist";
+        print(".minecraft and mods exist")
     else:
-        print "minecraft dir error";
-        sys.exit();
+        print("minecraft dir error")
+        sys.exit(0)
 
     # 根据在线模式或者离线模式获取内容后，进行更新
-    update_json = get_update_json_info(cfg);
+    update_json = get_update_json_info(cfg)
 
     # 遍历更新信息，查看是否有对应本地文件
     for info_dic in update_json["mods_list"]:
         if is_exist_file(info_dic, _minecraft_mods_path) == False:
-            print "缺少文件:" + info_dic["file_name"].encode("utf-8");
-            download_file_save_to_path(_update_download_url+info_dic["file_name"].encode("utf-8"),_minecraft_mods_path+info_dic["file_name"].encode("utf-8"));
+            print("缺少文件:" + info_dic["file_name"].encode("utf-8"))
+            download_file_save_to_path(_update_download_url+info_dic["file_name"].encode("utf-8"),_minecraft_mods_path+info_dic["file_name"].encode("utf-8"))
     # 删除指定文件
     for delete_md5 in update_json["delete_mod"]:
-        remove_exist_file(delete_md5,_minecraft_mods_path);
+        remove_exist_file(delete_md5,_minecraft_mods_path)
 
     # 结束
-    print "✅ ✅ ✅ ✅ 更新mods完成...";
-    sys.exit(0);
+    print("✅ ✅ ✅ ✅ 更新mods完成...")
+    sys.exit(0)
             
